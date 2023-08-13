@@ -3,11 +3,16 @@ import Key from "../Key/Key";
 import "./keyboard.css";
 import { useSelector, useDispatch } from "react-redux";
 import { rootState } from "../interface";
-import { decPos, setBoard } from "../../redux/boardSlice";
-
+import { decPos, incRow, setBoard } from "../../redux/boardSlice";
+import wordList from "../../words.json";
 const KeyBoard: React.FC = () => {
     const board = useSelector((state: rootState) => state.board.board);
     const position = useSelector((state: rootState) => state.board.pos);
+    const row = useSelector((state: rootState) => state.board.row);
+    const correctWord = useSelector(
+        (state: rootState) => state.board.correctWord
+    );
+
     const dispatch = useDispatch();
 
     const rows: string[] = [
@@ -15,13 +20,32 @@ const KeyBoard: React.FC = () => {
         "a s d f g h j k l",
         "z x c v b n m",
     ];
+    let allWords: string[] = wordList.words;
+    let board5Words: string = `${board[position - 5]}${board[position - 4]}${
+        board[position - 3]
+    }${board[position - 2]}${board[position - 1]}`.toLowerCase();
+
     const clickBack = () => {
-        if (position <= 0) return;
+        if (Math.floor((position - 1) / 5) < row) return;
 
         const newBoard = [...board];
         newBoard[position - 1] = "";
         dispatch(decPos());
         dispatch(setBoard(newBoard));
+    };
+
+    const clickEnter = () => {
+        if (allWords.includes(board5Words) === false) {
+            alert("Invalid words");
+        }
+        if (allWords.includes(board5Words)) {
+            if (position % 5 === 0 && position !== 0) {
+                dispatch(incRow());
+            }
+        }
+        if (position === 30 && allWords.includes(board5Words)) {
+            alert("The word is: " + correctWord);
+        }
     };
     return (
         <div className="keyboard-container">
@@ -29,7 +53,9 @@ const KeyBoard: React.FC = () => {
                 return (
                     <div className="row">
                         {index === 2 && (
-                            <span className="letter-row">Enter</span>
+                            <span className="letter-row" onClick={clickEnter}>
+                                Enter
+                            </span>
                         )}
                         {row.split(" ").map((letter, index) => {
                             return (
